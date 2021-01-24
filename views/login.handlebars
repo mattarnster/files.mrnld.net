@@ -1,0 +1,9 @@
+<form action="/login" method="POST" class="form-login">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email">
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password">
+    <br />
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <input type="submit" value="Login">
+</form>
