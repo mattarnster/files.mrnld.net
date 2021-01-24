@@ -1,6 +1,6 @@
 FROM node:current-alpine
 
-RUN apk add python make gcc g++
+RUN apk add python make gcc g++ sqlite
 
 WORKDIR /usr/src/files.mrnld.net
 
