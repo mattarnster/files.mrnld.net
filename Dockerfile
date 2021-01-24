@@ -10,5 +10,9 @@ RUN npm install
 
 COPY . .
 
+WORKDIR /usr/src/files.mrnld.net/db
+
+RUN [ "sqlite3", "files.db", ".read ../schema.sql"]
+
 EXPOSE 3000
 CMD [ "node", "index.js" ]
