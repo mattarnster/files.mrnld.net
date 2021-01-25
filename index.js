@@ -68,10 +68,12 @@ app.use((req, res, next) => {
 
 app.use(csurf())
 
-function saveThumbnail(imageName) {
+async function saveThumbnail(imageName) {
     return new Promise(function(resolve, reject) {
         Jimp.read('./uploads/' + imageName, (err, file) => {
-            if (err) reject(err)
+            if (err) {
+                console.log(err)
+            }
             resolve(file.resize(200, 200))
         })
     })
@@ -237,7 +239,7 @@ app.post('/upload', async (req, res) => {
             let upload = req.files.file;
 
             //Use the mv() method to place the upload in upload directory (i.e. "uploads")
-            upload.mv('./uploads/' + upload.name);
+            await upload.mv('./uploads/' + upload.name);
 
             if (upload.mimetype == 'image/png' || upload.mimetype == 'image/jpeg') {
                 let thumbnail = await saveThumbnail(upload.name)
