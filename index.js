@@ -65,10 +65,83 @@ let db = new sqlite3.Database('./db/files.db', sqlite3.OPEN_READWRITE, (err) => 
 });
 
 app.get('/', async (req, res) => {
+    db.get('SELECT * FROM users', (err, row) => {
+        if (!row) {
+            req.session.setup = true
+        }
+    })
+    if (req.session.setup) {
+        return res.redirect('/setup')
+    }
     if (!req.session.logged_in) {
         res.render('login', { csrfToken: req.csrfToken() })
     } else {
         res.render('index', { csrfToken: req.csrfToken() })
+    }
+})
+
+app.get('/setup', async (req, res) => {
+    if (!req.session.setup) {
+        res.render('/')
+    } else {
+        res.render('add-user', { csrfToken: req.csrfToken(), setup: true})
+    }
+})
+
+app.get('/admin', async (req, res) => {
+    if (!req.session.logged_in) {
+        req.flash('failure', 'You need to log in to view this page.')
+        res.redirect('/')
+    } else {
+        db.all('SELECT email,verified FROM users', (err, rows) => {
+            if (rows) {
+                res.render('admin', { users: rows })
+            }
+        })
+    }
+})
+
+app.get('/admin/add-user', async (req, res) => {
+    if (!req.session.logged_in) {
+        req.flash('failure', 'You need to log in to perform this action.')
+        res.redirect('/')
+    } else {
+        res.render('add-user', { csrfToken: req.csrfToken() })
+    }
+})
+
+app.post('/admin/add-user', async (req, res) => {
+    if (!req.session.logged_in && !req.session.setup) {
+        req.flash('failure', 'You need to log in to perform this action.')
+        res.redirect('/')
+    } else if (req.session.logged_in || req.session.setup) {
+        let { email, password, confirm_password } = req.body
+        if (!email || !password || !confirm_password) {
+            req.flash('failure', 'All values should be filled in')
+            res.redirect('/admin/add-user')
+        } else if (password !== confirm_password) {
+            req.flash('failure', 'Password and confirmed password should match')
+            res.redirect('/admin/add-user')
+        } else {
+            bcrypt.hash(password, saltRounds, (err, hash) => {
+                if (err) {
+                    req.flash('failure', 'Failed to hash password')
+                    res.redirect('/admin/add-user')
+                } else {
+                    var stmt = db.prepare('INSERT INTO users VALUES (?, ?, ?, ?)')
+                    stmt.run(null, email, hash, 1, (err, rows) => {
+                        if (err) {
+                            req.flash('failure', 'Failed to insert into database.')
+                            res.redirect('/admin/add-user')
+                        } else {
+                            req.session.setup = false
+                            req.flash('success', 'New user added')
+                            res.redirect('/admin')
+                        }
+                    })
+                }
+            })
+        }
     }
 })
 
@@ -110,6 +183,12 @@ app.post('/logout', async (req, res) => {
 })
 
 app.post('/upload', async (req, res) => {
+    if (!req.session.logged_in) {
+        return res.status(401).send({
+            status: false,
+            message: 'Unauthorized'
+        })
+    }
     try {
         if (!req.files) {
             res.send({

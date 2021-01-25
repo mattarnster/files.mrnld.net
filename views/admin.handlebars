@@ -1,0 +1,24 @@
+<h2>Admin operations</h2>
+<p><a href="/">&DoubleLeftArrow; Back</a></p>
+<br/>
+
+<div class="admin">
+    <p><a href="/admin/add-user">Add user</a></p>
+    <p>Users:</p>
+    <table>
+        <thead>
+            <tr>
+                <td>Email</td>
+                <td>Verified</td>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each users}}
+                <tr>
+                    <td>{{this.email}}</td>
+                    <td>{{this.verified}}</td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users(
-    id INT PRIMARY KEY NOT NULL,
+    id INT PRIMARY KEY ASC,
     email TEXT NOT NULL,
     password TEXT NOT NULL,
     verified BOOLEAN

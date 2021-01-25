@@ -1,0 +1,20 @@
+<h2>
+    {{#if setup}}
+    Setup admin user
+    {{else}}
+    Add user
+    {{/if}}
+</h2>
+<form action="/admin/add-user" method="POST">
+    <label for="email">Email:</label>
+    <input type="email" name="email" />
+    <br/>
+    <label for="password">Password:</label>
+    <input type="password" name="password" />
+    <br/>
+    <label for="confirm_password">Confirm password:</label>
+    <input type="password" name="confirm_password" />
+    <br/>
+    <input type="submit" value="Add user" />
+    <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+</form>
