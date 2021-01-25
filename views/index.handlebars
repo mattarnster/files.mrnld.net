@@ -4,6 +4,9 @@
         <input type="hidden" name="_csrf" value="{{csrfToken}}" />
         <input type="submit" value="Logout">
     </form>
+    {{#if isAdmin}}
+    <a href="/admin" class="button">Admin</a>
+    {{/if}}
 </div>
 <form action="/upload" method="post" enctype="multipart/form-data" class="dropzone" id="dropzone-form">
     <input type="file" name="file" id="file" hidden>

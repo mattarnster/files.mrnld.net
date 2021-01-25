@@ -100,9 +100,9 @@ app.get('/', async (req, res) => {
         return res.redirect('/setup')
     }
     if (!req.session.logged_in) {
-        res.render('login', { csrfToken: req.csrfToken() })
+        res.render('login', { csrfToken: req.csrfToken()})
     } else {
-        res.render('index', { csrfToken: req.csrfToken() })
+        res.render('index', { csrfToken: req.csrfToken(), isAdmin: (req.session.user_id == 1 ? true : false)  })
     }
 })
 
@@ -115,7 +115,7 @@ app.get('/setup', async (req, res) => {
 })
 
 app.get('/admin', async (req, res) => {
-    if (!req.session.logged_in) {
+    if (!req.session.logged_in || req.session.user_id !== 1) {
         req.flash('failure', 'You need to log in to view this page.')
         res.redirect('/')
     } else {
@@ -128,7 +128,7 @@ app.get('/admin', async (req, res) => {
 })
 
 app.get('/admin/add-user', async (req, res) => {
-    if (!req.session.logged_in) {
+    if (!req.session.logged_in || req.session.user_id !== 1) {
         req.flash('failure', 'You need to log in to perform this action.')
         res.redirect('/')
     } else {
@@ -142,14 +142,13 @@ app.get('/my-files', async (req, res) => {
         res.redirect('/')
     } else {
         db.all('SELECT rowid,userId,fileName,uploadId,mimeType FROM uploads WHERE userId=?', req.session.user_id, (err, rows) => {
-            console.log(rows)
             res.render('my-files', { files: rows })
         })
     }
 })
 
 app.post('/admin/add-user', async (req, res) => {
-    if (!req.session.logged_in && !req.session.setup) {
+    if ((!req.session.logged_in || req.session.user_id !== 1) && !req.session.setup) {
         req.flash('failure', 'You need to log in to perform this action.')
         res.redirect('/')
     } else if (req.session.logged_in || req.session.setup) {
