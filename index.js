@@ -14,7 +14,8 @@ const SQLiteStore = require('connect-sqlite3')(session);
 const bcrypt = require('bcrypt')
 const flash = require('connect-flash')
 const exphbs = require('express-handlebars')
-const csurf = require('csurf')
+const csurf = require('csurf');
+const Jimp = require('jimp');
 const saltRounds = 12
 
 const app = express();
@@ -31,7 +32,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan('tiny'));
 
-app.engine('handlebars', exphbs())
+var hbs = exphbs.create({
+    helpers: {
+        ifEquals: function(arg1, arg2, options) {
+            return (arg1 == arg2) ? options.fn(this) : options.inverse(this)
+        }
+    }
+})
+
+app.engine('handlebars', hbs.engine)
 app.set('view engine', 'handlebars')
 
 app.use(session({
@@ -110,6 +119,18 @@ app.get('/admin/add-user', async (req, res) => {
     }
 })
 
+app.get('/my-files', async (req, res) => {
+    if (!req.session.logged_in) {
+        req.flash('failure', 'You need to log in to perform this action.')
+        res.redirect('/')
+    } else {
+        db.all('SELECT rowid,userId,fileName,uploadId,mimeType FROM uploads WHERE userId=?', req.session.user_id, (err, rows) => {
+            console.log(rows)
+            res.render('my-files', { files: rows })
+        })
+    }
+})
+
 app.post('/admin/add-user', async (req, res) => {
     if (!req.session.logged_in && !req.session.setup) {
         req.flash('failure', 'You need to log in to perform this action.')
@@ -149,7 +170,7 @@ app.post('/login', async (req, res) => {
     if (req.session.logged_in) {
         res.redirect('/')
     } else {
-        db.get('SELECT email, password FROM users WHERE email=?', req.body.email, (err, row) => {
+        db.get('SELECT rowid, email, password FROM users WHERE email=?', req.body.email, (err, row) => {
             if (err) {
                 res.flash('failure', 'Login error')
                 res.redirect('/')
@@ -158,6 +179,7 @@ app.post('/login', async (req, res) => {
                     if (result) {
                         req.session.logged_in = true
                         req.session.user = row.email
+                        req.session.user_id = row.rowid
                         req.flash('success', "You're logged in!")
                         res.redirect('/')
                     } else {
@@ -202,10 +224,17 @@ app.post('/upload', async (req, res) => {
             //Use the mv() method to place the upload in upload directory (i.e. "uploads")
             upload.mv('./uploads/' + upload.name);
 
+            if (upload.mimetype == 'image/png' || upload.mimetype == 'image/jpeg')
+            Jimp.read('./uploads/' + upload.name, (err, file) => {
+                if (err) console.log(err)
+                console.log(file)
+                file.resize(200, 200).write('./uploads/' + 'thumbnail-' + upload.fileName)
+            })
+
             let uploadId = nanoid.nanoid();
 
-            let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?)');
-            stmt.run(1, upload.name, uploadId);
+            let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?, ?, ?)');
+            stmt.run(null, req.session.user_id, upload.name, uploadId, upload.mimetype);
             stmt.finalize();
 
             //send response
@@ -230,6 +259,20 @@ app.get('/download/:id', async (req, res) => {
                 res.render('404')
             } else {
                 res.download(path.join('uploads', row.fileName), row.fileName)
+            }
+        }
+    })
+})
+
+app.get('/preview/:id', async (req, res) => {
+    db.get('SELECT uploadId, fileName FROM uploads WHERE uploadId=?', req.params.id, (err, row) => {
+        if (err) {
+            res.render('404')
+        } else {
+            if (!row) {
+                res.render('404')
+            } else {
+                res.send(path.join('uploads', 'thumbnail-' + row.fileName), row.fileName)
             }
         }
     })

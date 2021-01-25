@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS users(
 );
 
 CREATE TABLE IF NOT EXISTS uploads(
-    userId INT NOT NULL,
+    id INT PRIMARY KEY ASC,
+    userId INT ASC,
     fileName TEXT NOT NULL,
-    uploadId TEXT NOT NULL
+    uploadId TEXT NOT NULL,
+    mimeType TEXT NOT NULL
 );

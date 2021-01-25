@@ -1,0 +1,25 @@
+<table>
+    <thead>
+        <tr>
+            <td>File Name</td>
+            <td>Preview</td>
+            <td>Link</td>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each files}}
+        <tr>
+            <td>{{ this.fileName }}</td>
+            <td class="image-preview">
+                {{#ifEquals this.mimeType "image/png"}}
+                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}"/>
+                {{else}}
+                <p>No preview available</p>
+                {{/ifEquals}}
+
+            </td>
+            <td>{{ this.uploadId }}</td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
