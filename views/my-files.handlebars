@@ -1,3 +1,5 @@
+<h2>My files</h2>
+<a href="/" class="button">Back</a>
 <table>
     <thead>
         <tr>
@@ -11,12 +13,13 @@
         <tr>
             <td>{{ this.fileName }}</td>
             <td class="image-preview">
-                {{#ifEquals this.mimeType "image/png"}}
+                {{#if (eq this.mimeType "image/jpeg") }}
+                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}"/>
+                {{else if (eq this.mimeType "image/png") }}
                 <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}"/>
                 {{else}}
                 <p>No preview available</p>
-                {{/ifEquals}}
-
+                {{/if}}
             </td>
             <td>{{ this.uploadId }}</td>
         </tr>

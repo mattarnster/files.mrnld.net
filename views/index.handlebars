@@ -1,11 +1,13 @@
-<form action="/logout" method="POST" class="form-logout">
-    <input type="hidden" name="_csrf" value="{{csrfToken}}" />
-    <input type="submit" value="Logout">
-</form>
+<div class="buttons">
+    <a href="/my-files" class="button my-files-button">My files</a>
+    <form action="/logout" method="POST" class="form-logout">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}" />
+        <input type="submit" value="Logout">
+    </form>
+</div>
 <form action="/upload" method="post" enctype="multipart/form-data" class="dropzone" id="dropzone-form">
     <input type="file" name="file" id="file" hidden>
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
-    <input type="submit" value="Upload" hidden>
 </form>
 <div class="uploaded-files">
 

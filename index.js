@@ -36,6 +36,12 @@ var hbs = exphbs.create({
     helpers: {
         ifEquals: function(arg1, arg2, options) {
             return (arg1 == arg2) ? options.fn(this) : options.inverse(this)
+        },
+        eq: function () {
+            const args = Array.prototype.slice.call(arguments, 0, -1);
+            return args.every(function (expression) {
+                return args[0] === expression;
+            });
         }
     }
 })
@@ -61,6 +67,15 @@ app.use((req, res, next) => {
 })
 
 app.use(csurf())
+
+function saveThumbnail(imageName) {
+    return new Promise(function(resolve, reject) {
+        Jimp.read('./uploads/' + imageName, (err, file) => {
+            if (err) reject(err)
+            resolve(file.resize(200, 200))
+        })
+    })
+}
 
 //start app 
 const port = process.env.PORT || 3000;
@@ -224,13 +239,11 @@ app.post('/upload', async (req, res) => {
             //Use the mv() method to place the upload in upload directory (i.e. "uploads")
             upload.mv('./uploads/' + upload.name);
 
-            if (upload.mimetype == 'image/png' || upload.mimetype == 'image/jpeg')
-            Jimp.read('./uploads/' + upload.name, (err, file) => {
-                if (err) console.log(err)
-                console.log(file)
-                file.resize(200, 200).write('./uploads/' + 'thumbnail-' + upload.fileName)
-            })
-
+            if (upload.mimetype == 'image/png' || upload.mimetype == 'image/jpeg') {
+                let thumbnail = await saveThumbnail(upload.name)
+                thumbnail.write('./uploads/' + 'thumbnail-' + upload.name)
+            }
+            
             let uploadId = nanoid.nanoid();
 
             let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?, ?, ?)');
@@ -272,7 +285,9 @@ app.get('/preview/:id', async (req, res) => {
             if (!row) {
                 res.render('404')
             } else {
-                res.send(path.join('uploads', 'thumbnail-' + row.fileName), row.fileName)
+                res.sendFile(path.join('uploads', 'thumbnail-' + row.fileName), {
+                    root: './'
+                })
             }
         }
     })
