@@ -6,6 +6,7 @@
             <td>File Name</td>
             <td>Preview</td>
             <td>Link</td>
+            <td>Password protected?</td>
         </tr>
     </thead>
     <tbody>
@@ -14,14 +15,21 @@
             <td>{{ this.fileName }}</td>
             <td class="image-preview">
                 {{#if (eq this.mimeType "image/jpeg") }}
-                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}"/>
+                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}" />
                 {{else if (eq this.mimeType "image/png") }}
-                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}"/>
+                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}" />
                 {{else}}
                 <p>No preview available</p>
                 {{/if}}
             </td>
-            <td><strong><em><a href="/download/{{ this.uploadId }}" class="">Download</a></em></strong></td>
+            <td><strong><em><a href="/download/{{this.uploadId}}" class="">Download</a></em></strong></td>
+            <td>
+                {{#if this.password}}
+                    Yes
+                {{else}}
+                    No
+                {{/if}}
+            </td>
         </tr>
         {{/each}}
     </tbody>

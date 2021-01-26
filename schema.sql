@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS uploads(
     userId INT ASC,
     fileName TEXT NOT NULL,
     uploadId TEXT NOT NULL,
-    mimeType TEXT NOT NULL
+    mimeType TEXT NOT NULL,
+    password TEXT
 );

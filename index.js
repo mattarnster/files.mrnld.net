@@ -34,7 +34,7 @@ app.use(morgan('tiny'));
 
 var hbs = exphbs.create({
     helpers: {
-        ifEquals: function(arg1, arg2, options) {
+        ifEquals: function (arg1, arg2, options) {
             return (arg1 == arg2) ? options.fn(this) : options.inverse(this)
         },
         eq: function () {
@@ -69,7 +69,7 @@ app.use((req, res, next) => {
 app.use(csurf())
 
 async function saveThumbnail(imageName) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         Jimp.read('./uploads/' + imageName, (err, file) => {
             if (err) {
                 console.log(err)
@@ -100,9 +100,9 @@ app.get('/', async (req, res) => {
         return res.redirect('/setup')
     }
     if (!req.session.logged_in) {
-        res.render('login', { csrfToken: req.csrfToken()})
+        res.render('login', { csrfToken: req.csrfToken() })
     } else {
-        res.render('index', { csrfToken: req.csrfToken(), isAdmin: (req.session.user_id == 1 ? true : false)  })
+        res.render('index', { csrfToken: req.csrfToken(), isAdmin: (req.session.user_id == 1 ? true : false) })
     }
 })
 
@@ -110,7 +110,7 @@ app.get('/setup', async (req, res) => {
     if (!req.session.setup) {
         res.render('/')
     } else {
-        res.render('add-user', { csrfToken: req.csrfToken(), setup: true})
+        res.render('add-user', { csrfToken: req.csrfToken(), setup: true })
     }
 })
 
@@ -141,7 +141,7 @@ app.get('/my-files', async (req, res) => {
         req.flash('failure', 'You need to log in to perform this action.')
         res.redirect('/')
     } else {
-        db.all('SELECT rowid,userId,fileName,uploadId,mimeType FROM uploads WHERE userId=?', req.session.user_id, (err, rows) => {
+        db.all('SELECT rowid,userId,fileName,uploadId,mimeType,password FROM uploads WHERE userId=?', req.session.user_id, (err, rows) => {
             res.render('my-files', { files: rows })
         })
     }
@@ -244,11 +244,11 @@ app.post('/upload', async (req, res) => {
                 let thumbnail = await saveThumbnail(upload.name)
                 thumbnail.write('./uploads/' + 'thumbnail-' + upload.name)
             }
-            
+
             let uploadId = nanoid.nanoid();
 
-            let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?, ?, ?)');
-            stmt.run(null, req.session.user_id, upload.name, uploadId, upload.mimetype);
+            let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?, ?, ?, ?)');
+            stmt.run(null, req.session.user_id, upload.name, uploadId, upload.mimetype, null);
             stmt.finalize();
 
             //send response
@@ -264,21 +264,98 @@ app.post('/upload', async (req, res) => {
     }
 });
 
+app.post('/upload/setpassword', async (req, res) => {
+    // Verify the user is logged in
+    // Verify the current user owns the upload
+    // Save the password against the upload
+
+    if (!req.session.logged_in) {
+        res.send({
+            status: false,
+            message: 'Unauthorized'
+        }, 401)
+    } else {
+        db.get('SELECT uploadId, userId FROM uploads WHERE uploadId=? AND userId=?',
+            req.body.uploadId,
+            req.session.user_id,
+            (err, row) => {
+                if (err) return res.send({
+                    status: false,
+                    message: "Internal server error"
+                }, 500)
+
+                if (row) {
+                    bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+                        if (err) {
+                            return res.send({
+                                status: false,
+                                message: 'Internal server error'
+                            }, 500)
+                        }
+                        var stmt = db.prepare("UPDATE uploads SET password=? WHERE uploadId=?")
+                        stmt.run(hash, req.body.uploadId)
+                        stmt.finalize()
+    
+                        return res.send({
+                            status: true,
+                            message: 'Password set'
+                        })
+                    })
+                } else {
+                    res.send({
+                        status: false,
+                        message: 'Unauthorized operation'
+                    }, 401)
+                }
+            }
+        )
+    }
+})
+
 app.get('/download/:id', async (req, res) => {
-    db.get('SELECT uploadId, fileName FROM uploads WHERE uploadId=?', req.params.id, (err, row) => {
+    db.get('SELECT uploadId, fileName, password FROM uploads WHERE uploadId=?', req.params.id, (err, row) => {
         if (err) {
             res.render('404')
         } else {
             if (!row) {
                 res.render('404')
-            } else {
+            } else if (row.password == null) {
                 res.download(path.join('uploads', row.fileName), row.fileName)
+            } else if (row.password !== null) {
+                res.render('password-protection', { uploadId: req.params.id, csrfToken: req.csrfToken() })
             }
         }
     })
 })
 
+app.post('/download/:id', async (req, res) => {
+    db.get('SELECT uploadId, fileName, password FROM uploads WHERE uploadId=?', req.params.id, (err, row) => {
+        if (err) {
+            return res.render('500')
+        }
+
+        if (!row) {
+            return res.render(404)
+        }
+
+        bcrypt.compare(req.body.password, row.password, (err, same) => {
+            if (err) {
+                return res.render('500')
+            } else if (same) {
+                res.download(path.join('uploads', row.fileName), row.fileName)
+            } else if (!same) {
+                req.flash('failure', 'Invalid password')
+                res.redirect('/download/' + req.params.id)
+            }
+        })
+    })
+})
+
 app.get('/preview/:id', async (req, res) => {
+    if (!req.session.logged_in) {
+        req.flash('failure', 'You need to be logged in to view previews')
+        return res.redirect('/')
+    }
     db.get('SELECT uploadId, fileName FROM uploads WHERE uploadId=?', req.params.id, (err, row) => {
         if (err) {
             res.render('404')

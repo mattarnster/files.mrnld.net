@@ -23,16 +23,110 @@
         success: function (file, response) {
             console.log(response)
             let uploadedFilesDiv = document.querySelector('.uploaded-files');
+
             let newFileUploadDiv = document.createElement('div')
             newFileUploadDiv.className = "upload"
+
             let newFileUpload = document.createElement('p')
             newFileUpload.textContent = file.name
-            let newFileUploadLink = document.createElement('a')
-            newFileUploadLink.href = "http://" + window.location.host + "/download/" + response.data.uploadId
-            newFileUploadLink.text = "http://" + window.location.host + "/download/" + response.data.uploadId
+
+            let newFileUploadThumbnail = document.createElement('img')
+            newFileUploadThumbnail.src = "http://" + window.location.host + "/preview/" + response.data.uploadId
+
+            let newFileUploadLinkLabel = document.createElement('label')
+            newFileUploadLinkLabel.attributes['for'] = response.data.uploadId
+            newFileUploadLinkLabel.textContent = "Click on the link below to copy it to your clipboard"
+
+            let newFileUploadLink = document.createElement('input')
+            newFileUploadLink.id = response.data.uploadId
+            newFileUploadLink.value = "http://" + window.location.host + "/download/" + response.data.uploadId
+
+            newFileUploadLink.addEventListener('click', function (e) {
+                // Thanks w3schools!
+
+                /* Select the text field */
+                e.target.select();
+                e.target.setSelectionRange(0, 99999); /* For mobile devices */
+
+                /* Copy the text inside the text field */
+                document.execCommand("copy");
+            })
+
+            let passwordForm = document.createElement('form')
+            passwordForm.method = "POST"
+            passwordForm.action = "/upload/setpassword"
+            passwordForm.id = "set_password"
+            let passwordLabel = document.createElement('label')
+            passwordLabel.attributes['for'] = "password"
+            passwordLabel.textContent = "Password:"
+            let passwordInput = document.createElement('input')
+            passwordInput.name = "password"
+            passwordInput.type = "password"
+            // Get existing CSRF value from the page
+            let csrfElement = document.getElementsByName('_csrf')[0]
+            let csrfInput = document.createElement('input')
+            csrfInput.type = "hidden"
+            csrfInput.name = "_csrf"
+            csrfInput.value = csrfElement.value
+
+            let passwordUploadId = document.createElement('input')
+            passwordUploadId.type = "hidden"
+            passwordUploadId.name = "uploadId"
+            passwordUploadId.value = response.data.uploadId
+
+            let passwordSubmit = document.createElement('input')
+            passwordSubmit.type = "Submit"
+            passwordSubmit.value = "Save"
+
+            passwordForm.appendChild(passwordLabel)
+            passwordForm.appendChild(passwordInput)
+            passwordForm.appendChild(csrfInput)
+            passwordForm.appendChild(passwordUploadId)
+            passwordForm.appendChild(passwordSubmit)
+
+            newFileUploadDiv.appendChild(newFileUploadThumbnail)
             newFileUploadDiv.appendChild(newFileUpload)
+            newFileUploadDiv.appendChild(newFileUploadLinkLabel)
             newFileUploadDiv.appendChild(newFileUploadLink)
+            newFileUploadDiv.appendChild(passwordForm)
             uploadedFilesDiv.appendChild(newFileUploadDiv)
+
+            passwordForm.addEventListener('submit', function (e) {
+                e.preventDefault()
+                fetch("/upload/setpassword", {
+                    method: "POST",
+                    headers: {
+                        credentials: 'same-origin',
+                    },
+                    body: new FormData(document.getElementById("set_password")),
+                }).then(response => {
+                    return response.json()
+                }).then(json => {
+                    let flashMessages = e.target.parentElement.querySelectorAll('div.flash')
+                    if (flashMessages) {
+                        for (let message of flashMessages) {
+                            message.remove()
+                        }
+                    }
+                    if (json.status == true) {
+                        newFileUploadDiv.removeChild(passwordForm)
+                        let successMessage = document.createElement('div')
+                        successMessage.classList = ["flash success"]
+                        let successMessageContent = document.createElement('p')
+                        successMessageContent.textContent = "Password set!"
+                        successMessage.appendChild(successMessageContent)
+                        newFileUploadDiv.appendChild(successMessage)
+                    } else if (json.status == false) {
+                        let successMessage = document.createElement('div')
+                        successMessage.classList = ["flash failure"]
+                        let successMessageContent = document.createElement('p')
+                        successMessageContent.textContent = "Failed to set password"
+                        successMessage.appendChild(successMessageContent)
+                        newFileUploadDiv.appendChild(successMessage)
+                    }
+
+                })
+            })
         }
     }
 </script>
