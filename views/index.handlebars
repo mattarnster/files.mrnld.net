@@ -20,8 +20,8 @@
     crossorigin="anonymous"></script>
 <script>
     Dropzone.options.dropzoneForm = {
+        maxFileSize: 3000,
         success: function (file, response) {
-            console.log(response)
             let uploadedFilesDiv = document.querySelector('.uploaded-files');
 
             let newFileUploadDiv = document.createElement('div')
