@@ -74,7 +74,7 @@ async function saveThumbnail(imageName) {
             if (err) {
                 console.log(err)
             }
-            resolve(file.resize(200, 200))
+            resolve(file.resize(200, Jimp.AUTO))
         })
     })
 }
