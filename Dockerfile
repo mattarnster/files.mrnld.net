@@ -18,4 +18,4 @@ RUN [ "npm", "install", "-g", "pm2"]
 WORKDIR /usr/src/files.mrnld.net
 
 EXPOSE 3000
-CMD [ "pm2", "start", "index.js", "--name", "files.mrnld.net" ]
+CMD [ "pm2-runtime", "start", "index.js", "--name", "files.mrnld.net" ]
