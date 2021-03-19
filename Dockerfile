@@ -13,8 +13,9 @@ COPY . .
 WORKDIR /usr/src/files.mrnld.net/db
 
 RUN [ "sqlite3", "files.db", ".read ../schema.sql"]
+RUN [ "npm", "install", "-g", "pm2"]
 
 WORKDIR /usr/src/files.mrnld.net
 
 EXPOSE 3000
-CMD [ "node", "index.js" ]
+CMD [ "pm2", "start", "index.js", "--name", "files.mrnld.net" ]
