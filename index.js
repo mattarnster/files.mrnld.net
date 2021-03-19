@@ -16,6 +16,7 @@ const flash = require('connect-flash')
 const exphbs = require('express-handlebars')
 const csurf = require('csurf');
 const Jimp = require('jimp');
+const fs = require('fs');
 const saltRounds = 12
 
 const app = express();
@@ -139,10 +140,69 @@ app.get('/admin/add-user', async (req, res) => {
 app.get('/my-files', async (req, res) => {
     if (!req.session.logged_in) {
         req.flash('failure', 'You need to log in to perform this action.')
-        res.redirect('/')
+        return res.redirect('/')
     } else {
         db.all('SELECT rowid,userId,fileName,uploadId,mimeType,password FROM uploads WHERE userId=?', req.session.user_id, (err, rows) => {
-            res.render('my-files', { files: rows })
+            return res.render('my-files', { files: rows })
+        })
+    }
+})
+
+app.get('/delete/:id', async (req, res) => {
+    if (!req.session.logged_in) {
+        req.flash('failure', 'You need to log in to perform this action.')
+        return res.redirect('/')
+    } else {
+        db.get('SELECT userId, uploadId, mimeType FROM uploads WHERE userId=? AND uploadID=?', req.session.user_id, req.params.id, (err, row) => {
+            if (err) {
+                req.flash('failure', 'Failed to connect to the database')
+                return res.redirect('/my-files')
+            } else if (!row) {
+                req.flash('failure', 'File not found')
+                return res.redirect('/my-files')
+            } else {
+                var isImage = false
+                if (row.mimeType.includes('image')) {
+                    isImage = true
+                }
+                return res.render('delete-file', { upload: row, csrfToken: req.csrfToken(), isImage: isImage })
+            }
+        })
+    }
+})
+
+app.post('/delete/:id', async (req, res) => {
+    if (!req.session.logged_in) {
+        req.flash('failure', 'You need to log in to perform this action.')
+        res.redirect('/')
+    } else {
+        db.get('SELECT userId, uploadId, fileName FROM uploads WHERE userId=? AND uploadId=?', req.session.user_id, req.params.id, (err, row) => {
+            if (err) {
+                req.flash('failure', 'Failed to connect to the database')
+                return res.redirect('/my-files')
+            } else if (!row) {
+                req.flash('failure', 'File not found')
+                return res.redirect('/my-files')
+            } else { 
+                var stmt = db.prepare('DELETE FROM uploads WHERE uploadId=? AND userId=?')
+                stmt.run(req.params.id, req.session.user_id, (err, rows) => {
+                    if (err) {
+                        req.flash('failure', 'Failed to delete file')
+                        return res.redirect('/my-files')
+                    } else {
+                        fs.unlink(path.join('uploads', row.fileName), (err) => {
+                            if (!err) {
+                                req.flash('success', 'File deleted')
+                                return res.redirect('/my-files')
+                            } else {
+                                req.flash('failure', 'Error unlinking file: ' + err)
+                                return res.redirect('/my-files')
+                            }
+                        })
+                        
+                    }
+                })
+            }
         })
     }
 })

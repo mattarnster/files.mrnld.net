@@ -7,6 +7,7 @@
             <td>Preview</td>
             <td>Link</td>
             <td>Password protected?</td>
+            <td>Delete</td>
         </tr>
     </thead>
     <tbody>
@@ -25,10 +26,13 @@
             <td><strong><em><a href="/download/{{this.uploadId}}" class="">Download</a></em></strong></td>
             <td>
                 {{#if this.password}}
-                    Yes
+                    <strong>Yes</strong>
                 {{else}}
-                    No
+                    <strong>No</strong>
                 {{/if}}
+            </td>
+            <td>
+                <strong><em><a href="/delete/{{this.uploadId}}">Delete</a></em></strong>
             </td>
         </tr>
         {{/each}}
