@@ -176,7 +176,7 @@ app.post('/delete/:id', async (req, res) => {
         req.flash('failure', 'You need to log in to perform this action.')
         res.redirect('/')
     } else {
-        db.get('SELECT userId, uploadId, fileName FROM uploads WHERE userId=? AND uploadId=?', req.session.user_id, req.params.id, (err, row) => {
+        db.get('SELECT userId, uploadId, fileName, mimeType FROM uploads WHERE userId=? AND uploadId=?', req.session.user_id, req.params.id, (err, row) => {
             if (err) {
                 req.flash('failure', 'Failed to connect to the database')
                 return res.redirect('/my-files')
@@ -190,16 +190,12 @@ app.post('/delete/:id', async (req, res) => {
                         req.flash('failure', 'Failed to delete file')
                         return res.redirect('/my-files')
                     } else {
-                        fs.unlink(path.join('uploads', row.fileName), (err) => {
-                            if (!err) {
-                                req.flash('success', 'File deleted')
-                                return res.redirect('/my-files')
-                            } else {
-                                req.flash('failure', 'Error unlinking file: ' + err)
-                                return res.redirect('/my-files')
-                            }
-                        })
-                        
+                        fs.unlinkSync(path.join('uploads', row.fileName))
+                        if (row.mimeType.includes('image')) {
+                            fs.unlinkSync(path.join('uploads', 'thumbnail-' + row.fileName))
+                        }
+                        req.flash('success', 'File deleted')
+                        return res.redirect('/my-files')
                     }
                 })
             }
