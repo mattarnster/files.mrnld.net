@@ -99,6 +99,8 @@ app.use('/preview', preview)
 app.use('/delete', deleteFile)
 
 // listen for incoming connections
-app.listen(port, () =>
+var server = app.listen(port, () =>
     console.log(`App is listening on port ${port}.`)
 );
+
+module.exports = server
