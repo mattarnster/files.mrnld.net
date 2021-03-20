@@ -1,0 +1,10 @@
+<h2>Create a new library</h2>
+
+<form action="/libraries" method="POST">
+    <label for="library_name">Name</label>
+    <input type="text" name="library_name" id="library_name">
+    <label for="library_private">Private? (This means you'll need to enter a password in order to access any of the files)</label>
+    <input type="checkbox" name="library_private" value="private" />
+    <input type="hidden" name="_csrf" value="{{./req.csrfToken}}">
+    <input type="submit" value="Create library">
+</form>

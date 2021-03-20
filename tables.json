@@ -1,0 +1,32 @@
+[
+    {
+        "version": 0,
+        "tables": [
+            {
+                "name": "users",
+                "up": "CREATE TABLE IF NOT EXISTS users(id INT PRIMARY KEY ASC,email TEXT NOT NULL,password TEXT NOT NULL,verified BOOLEAN);",
+                "down": "DROP TABLE users;"
+            },
+            {
+                "name": "uploads",
+                "up": "CREATE TABLE IF NOT EXISTS uploads(id INT PRIMARY KEY ASC,userId INT ASC,fileName TEXT NOT NULL,uploadId TEXT NOT NULL,mimeType TEXT NOT NULL,password TEXT);",
+                "down": "DROP TABLE uploads;"
+            },
+            {
+                "name": "migrations",
+                "up": "CREATE TABLE IF NOT EXISTS migrations(id INT PRIMARY KEY ASC,version INT)",
+                "down": "DROP TABLE migrations;"
+            }
+        ]
+    },
+    {
+        "version": 1,
+        "tables": [
+            {
+                "name": "libraries",
+                "up": "CREATE TABLE IF NOT EXISTS libraries(id INT PRIMARY KEY ASC,userId INT ASC,name TEXT NOT NULL,privateId TEXT NOT NULL); ALTER TABLE uploads ADD COLUMN libraryId INT;",
+                "down": "DROP TABLE libraries;"
+            }
+        ]
+    }
+]

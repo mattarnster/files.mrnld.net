@@ -1,0 +1,40 @@
+<h2>{{libraryName}}</h2>
+<a href="/libraries" class="button">Back</a>
+<table>
+    <thead>
+        <tr>
+            <td>File Name</td>
+            <td>Preview</td>
+            <td>Link</td>
+            <td>Password protected?</td>
+            <td>Delete</td>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each files}}
+        <tr>
+            <td>{{ this.fileName }}</td>
+            <td class="image-preview">
+                {{#if (eq this.mimeType "image/jpeg") }}
+                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}" />
+                {{else if (eq this.mimeType "image/png") }}
+                <img src="/preview/{{this.uploadId}}" alt="{{this.fileName}}" />
+                {{else}}
+                <p>No preview available</p>
+                {{/if}}
+            </td>
+            <td><strong><em><a href="/download/{{this.uploadId}}" class="">Download</a></em></strong></td>
+            <td>
+                {{#if this.password}}
+                    <strong>Yes</strong>
+                {{else}}
+                    <strong>No</strong>
+                {{/if}}
+            </td>
+            <td>
+                <strong><em><a href="/delete/{{this.uploadId}}">Delete</a></em></strong>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>

@@ -14,9 +14,11 @@ router.get('/', async (req, res) => {
         return res.redirect('/setup')
     }
     if (!req.session.logged_in) {
-        res.render('login', { csrfToken: req.csrfToken() })
+        res.render('login')
     } else {
-        res.render('index', { csrfToken: req.csrfToken(), isAdmin: (req.session.user_id == 1 ? true : false) })
+        db.all('SELECT rowid,* FROM libraries WHERE userId=?', req.session.user_id, (err, rows) => {
+            return res.render('index', { libraries: rows })
+        })
     }
 })
 

@@ -3,30 +3,65 @@ const fs = require('fs')
 
 let _db
 
-function initDb() {
+async function initDb() {
     try {
-        _db = new sqlite3.Database('./db/files.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
+        _db = new sqlite3.Database('./db/files.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, async (err) => {
             if (err) {
                 console.log('[DB] Error creating/opening db file, check permissions')
             } else {
                 console.log('[DB] Checking table schemas...')
-                _db.serialize(function () {
-                    _db.all("select name from sqlite_master where type='table'", function (err, tables) {
+                _db.serialize(async function () {
+                    _db.all("select name from sqlite_master where type='table'", async function (err, tables) {
                         if (tables.length === 0) {
-                            let queries = fs.readFile('./schema.sql', 'utf-8', (err, data) => {
-                                if (err) {
-                                    console.log('[DB] Error reading schema')
-                                } else {
-                                    console.log('[DB] Creating initial schema')
-                                    _db.exec(data)
-                                }
-                            })
+                            // There are no tables in the database, start migrations
+                            let migrations = fs.readFile('./tables.json', 'utf-8', (async (err, data) => {
+                                let json = JSON.parse(data)
+                                json.forEach(dbVersion => {
+                                    console.log(`[DB] Doing migrations for version: ${dbVersion.version}`)
+                                    
+                                    dbVersion.tables.forEach(table => {
+                                        _db.exec(table.up)
+                                    })
+
+                                    _db.all('SELECT version FROM migrations LIMIT 1', async (err, row) => {
+                                        if (row.length === 0) {
+                                            var stmt = _db.prepare('INSERT INTO migrations VALUES (?,?)')
+                                            stmt.run(null, dbVersion.version, async (err, rows) => {
+                                                if (err) {
+                                                    console.log(err)
+                                                }
+                                            })
+                                        } else {
+                                            var stmt = _db.prepare('UPDATE migrations SET version=?')
+                                            stmt.run(dbVersion.version)
+                                            console.log(`[DB] Updated database version to ${dbVersion.version}`)
+                                        }
+                                    })
+                                })
+                            }))
                         } else {
-                            console.log('[DB] Found existing tables')
+                            console.log('[DB] Found existing tables, checking versions...')
+                            let migrations = fs.readFile('./tables.json', 'utf-8', (async (err, data) => {
+                                let json = JSON.parse(data)
+                                var latestVersion = json[json.length - 1].version
+                                var dbVersion
+                                await _db.get('SELECT version FROM migrations LIMIT 1', (err, row) => {
+                                    dbVersion = row.version
+                                    console.log(`[DB] Latest migration version is: ${latestVersion}, compared to ${row.version}`)
+                                    while (latestVersion > dbVersion) {
+                                        dbVersion++
+                                        console.log(`[DB] Applying migration version ${dbVersion}`)
+                                        json[dbVersion].tables.forEach(table => {
+                                            _db.exec(table.up)
+                                        })
+                                        var stmt = _db.prepare('UPDATE migrations SET version=?')
+                                        stmt.run(dbVersion)
+                                    }
+                                })
+                            }))
                         }
                     });
                 });
-                console.log('[DB] Connected to the files database.');
             }
         });
     } catch (ex) {

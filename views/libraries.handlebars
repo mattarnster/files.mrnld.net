@@ -1,0 +1,20 @@
+<h2>My libraries</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Library name</th>
+            <th>Private?</th>
+            <th>Public upload link</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each libraries}}
+            <tr>
+                <td><strong><a href="/libraries/{{this.rowid}}">{{this.name}}</a></strong></td>
+                <td>?</td>
+                <td><strong><a href="https://files.mrnld.net/upload/private/{{this.privateId}}">https://files.mrnld.net/upload/private/{{this.privateId}}</a></strong></td>
+            </tr>
+        {{/each}}
+    </tbody>
+</table>

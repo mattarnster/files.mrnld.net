@@ -35,7 +35,13 @@ router.post('/', async (req, res) => {
             });
         } else {
             //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
-            let upload = req.files.file;
+            let upload = req.files.file
+
+            let library = req.body.library
+
+            if (library === 'default') {
+                library = null
+            }
 
             //Use the mv() method to place the upload in upload directory (i.e. "uploads")
             await upload.mv('./uploads/' + upload.name);
@@ -47,8 +53,8 @@ router.post('/', async (req, res) => {
 
             let uploadId = nanoid.nanoid();
 
-            let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?, ?, ?, ?)');
-            stmt.run(null, req.session.user_id, upload.name, uploadId, upload.mimetype, null);
+            let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?, ?, ?, ?, ?)');
+            stmt.run(null, req.session.user_id, upload.name, uploadId, upload.mimetype, null, (library ? library: null));
             stmt.finalize();
 
             //send response

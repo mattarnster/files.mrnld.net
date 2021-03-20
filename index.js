@@ -32,6 +32,7 @@ const myFiles = require('./routes/my-files')
 const download = require('./routes/download')
 const preview = require('./routes/preview')
 const deleteFile = require('./routes/delete-files')
+const libraries = require('./routes/libraries')
 
 // initialize express
 const app = express();
@@ -78,16 +79,18 @@ app.use(session({
     saveUninitialized: true,
 }))
 
-// enable flash messages
+// csrf protection
+app.use(csurf())
+
+// enable flash messages and make session, csrf token available in views
 app.use(flash())
 app.use((req, res, next) => {
+    res.locals.req = req
+    res.locals.csrfToken = req.csrfToken()
     res.locals.success = req.flash('success')
     res.locals.failure = req.flash('failure')
     next()
 })
-
-// csrf protection
-app.use(csurf())
 
 //start app 
 const port = process.env.PORT || 3000;
@@ -102,6 +105,7 @@ app.use('/my-files', myFiles)
 app.use('/download', download)
 app.use('/preview', preview)
 app.use('/delete', deleteFile)
+app.use('/libraries', libraries)
 
 // listen for incoming connections
 var server = app.listen(port, () =>

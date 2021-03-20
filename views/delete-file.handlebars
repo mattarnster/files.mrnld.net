@@ -6,5 +6,5 @@
 {{/if}}
 <form action="/delete/{{upload.uploadId}}" method="POST">
     <input type="submit" value="Delete" />
-    <input type="hidden" name="_csrf" value="{{csrfToken}}"/>
+    <input type="hidden" name="_csrf" value="{{./req.csrfToken}}"/>
 </form>

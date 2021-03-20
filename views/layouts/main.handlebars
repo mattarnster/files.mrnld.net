@@ -128,6 +128,21 @@
         {{/if}}
     </div>
 
+    <div class="buttons">
+    {{#if ./req.session.logged_in }}
+    <a href="/" class="button">Upload</a>
+    <a href="/my-files" class="button my-files-button">My files</a>
+    <a href="/libraries" class="button">Libraries</a>
+    <form action="/logout" method="POST" class="form-logout">
+        <input type="hidden" name="_csrf" value="{{./req.csrfToken}}" />
+        <input type="submit" value="Logout">
+    </form>
+    {{#if (eq ./req.session.user_id 1)}}
+    <a href="/admin" class="button">Admin</a>
+    {{/if}}
+    {{/if}}
+</div>
+
     {{{body}}}
 </body>
 
