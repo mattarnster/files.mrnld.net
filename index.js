@@ -17,6 +17,11 @@ const flash = require('connect-flash')
 const exphbs = require('express-handlebars')
 const csurf = require('csurf');
 
+const { getDb } = require('./db')
+
+// set up db
+const db = getDb()
+
 // require routes
 const home = require('./routes/home')
 const auth = require('./routes/auth')
