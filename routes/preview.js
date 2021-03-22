@@ -11,7 +11,7 @@ router.get('/:id', async (req, res) => {
         req.flash('failure', 'You need to be logged in to view previews')
         return res.redirect('/')
     }
-    db.get('SELECT uploadId, fileName FROM uploads WHERE uploadId=?', req.params.id, (err, row) => {
+    db.get('SELECT uploadId, fileName, userId FROM uploads WHERE uploadId=? AND userId=?', req.params.id, req.session.user_id, (err, row) => {
         if (err) {
             res.render('404')
         } else {
