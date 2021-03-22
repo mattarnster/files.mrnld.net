@@ -83,7 +83,9 @@
             passwordForm.appendChild(passwordUploadId)
             passwordForm.appendChild(passwordSubmit)
 
-            newFileUploadDiv.appendChild(newFileUploadThumbnail)
+            if (response.data.hasThumbnail) {
+                newFileUploadDiv.appendChild(newFileUploadThumbnail)
+            }
             newFileUploadDiv.appendChild(newFileUpload)
             newFileUploadDiv.appendChild(newFileUploadLinkLabel)
             newFileUploadDiv.appendChild(newFileUploadLink)

@@ -46,9 +46,12 @@ router.post('/', async (req, res) => {
             //Use the mv() method to place the upload in upload directory (i.e. "uploads")
             await upload.mv('./uploads/' + upload.name);
 
+            let hasThumbnail = false 
+
             if (upload.mimetype == 'image/png' || upload.mimetype == 'image/jpeg') {
                 let thumbnail = await saveThumbnail(upload.name)
                 thumbnail.write('./uploads/' + 'thumbnail-' + upload.name)
+                hasThumbnail = true
             }
 
             let uploadId = nanoid.nanoid();
@@ -61,7 +64,8 @@ router.post('/', async (req, res) => {
             res.send({
                 status: true,
                 data: {
-                    uploadId: uploadId
+                    uploadId: uploadId,
+                    hasThumbnail: hasThumbnail
                 }
             });
         }
