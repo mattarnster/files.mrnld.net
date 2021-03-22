@@ -1,10 +1,11 @@
 <h2>My libraries</h2>
-
+<a href="/libraries/new" class="button">New library</a>
 <table>
     <thead>
         <tr>
             <th>Library name</th>
             <th>Private?</th>
+            <th>Allows public uploads?</th>
             <th>Public upload link</th>
         </tr>
     </thead>
@@ -12,8 +13,25 @@
         {{#each libraries}}
             <tr>
                 <td><strong><a href="/libraries/{{this.rowid}}">{{this.name}}</a></strong></td>
-                <td>?</td>
-                <td><strong><a href="https://files.mrnld.net/upload/private/{{this.privateId}}">https://files.mrnld.net/upload/private/{{this.privateId}}</a></strong></td>
+                <td>
+                    {{#if (eq this.private 1)}}
+                    Yes
+                    {{else}}
+                    No
+                    {{/if}}
+                </td>
+                <td>
+                    {{#if (eq this.allowUploads 1)}}
+                    Yes
+                    {{else}}
+                    No
+                    {{/if}}
+                </td>
+                <td>
+                    {{#if (eq this.private 0)}}
+                    <strong><a href="https://files.mrnld.net/upload/private/{{this.privateId}}">https://files.mrnld.net/upload/private/{{this.privateId}}</a></strong>
+                    {{/if}}
+                </td>
             </tr>
         {{/each}}
     </tbody>

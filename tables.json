@@ -28,5 +28,35 @@
                 "down": "DROP TABLE libraries;"
             }
         ]
+    },
+    {
+        "version": 2,
+        "tables": [
+            {
+                "name": "libraries",
+                "up": "ALTER TABLE libraries ADD COLUMN private INT NOT NULL DEFAULT 0;",
+                "down": "ALTER TABLE libraries REMOVE COLUMN private;"
+            }
+        ]
+    },
+    {
+        "version": 3,
+        "tables": [
+            {
+                "name": "libraries",
+                "up": "ALTER TABLE libraries ADD COLUMN allowUploads INT NOT NULL DEFAULT 0;",
+                "down": "ALTER TABLE libraries REMOVE COLUMN allowUploads;"
+            }
+        ]
+    },
+    {
+        "version": 4,
+        "tables": [
+            {
+                "name": "libraries",
+                "up": "ALTER TABLE libraries ADD COLUMN password TEXT DEFAULT '';",
+                "down": "ALTER TABLE libraries REMOVE COLUMN password;"
+            }
+        ]
     }
 ]

@@ -3,8 +3,29 @@
 <form action="/libraries" method="POST">
     <label for="library_name">Name</label>
     <input type="text" name="library_name" id="library_name">
-    <label for="library_private">Private? (This means you'll need to enter a password in order to access any of the files)</label>
-    <input type="checkbox" name="library_private" value="private" />
+    <label for="private_library">
+        <input type="checkbox" name="private_library" id="private_library" value="1" />
+        Private? (This means you'll need to enter a password in order to view the contents of the library)
+    </label>
+    <label for="password" style="display: none;" id="pwlabel">Password: 
+        <input type="text" name="password" id="password">
+    </label>
+    <label for="allow_uploads">
+        <input type="checkbox" name="allow_uploads" value="1" />
+        Allow public uploads?
+    </label>
     <input type="hidden" name="_csrf" value="{{./req.csrfToken}}">
     <input type="submit" value="Create library">
 </form>
+
+<script type="text/javascript">
+    var privateCheckbox = document.getElementById('private_library');
+    var passwordInputAndLabel = document.getElementById('pwlabel');
+    privateCheckbox.onclick = function (event) {
+        if  (event.target.checked) {
+            passwordInputAndLabel.style.display = "inline-block"
+        } else {
+            passwordInputAndLabel.style.display = "none"
+        }
+    }
+</script>
