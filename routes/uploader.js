@@ -122,4 +122,61 @@ router.post('/setpassword', async (req, res) => {
     }
 })
 
+router.get('/private/:libraryPrivateId', async (req, res) => {
+    if (!req.params.libraryPrivateId) {
+        return res.redirect('/')
+    }
+
+    db.get('SELECT privateId,allowUploads,name FROM libraries WHERE privateId=? AND allowUploads=1', req.params.libraryPrivateId, (err, row) => {
+        if (!row) {
+            return res.redirect('/')
+        }
+
+        return res.render('library-public-upload', { library: row })
+    })
+})
+
+router.post('/public', async (req, res) => {
+    console.log(req.body)
+    if (!req.body.library_private_id) {
+        return res.send({ error: "No library provided"})
+    }
+
+    try {
+        if (!req.files) {
+            res.send({
+                status: false,
+                message: 'No file uploaded'
+            });
+        } else {
+            //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
+            let upload = req.files.file
+
+            //Use the mv() method to place the upload in upload directory (i.e. "uploads")
+            await upload.mv('./uploads/' + upload.name);
+
+            let uploadId = nanoid.nanoid();
+
+            db.get('SELECT rowid,userId,private,allowUploads FROM libraries WHERE private=0 AND privateId=? AND allowUploads=1', req.body.library_private_id, (err, row) => {
+                let stmt = db.prepare('INSERT INTO uploads VALUES (?, ?, ?, ?, ?, ?, ?)');
+                stmt.run(null, row.userId, upload.name, uploadId, upload.mimetype, null, row.rowid);
+                stmt.finalize();
+    
+                //send response
+                return res.send({
+                    status: true,
+                    data: {
+                        uploadId: uploadId,
+                        hasThumbnail: false,
+                        isPrivate: true
+                    }
+                });
+            })
+        }
+    } catch (err) {
+        console.error(err)
+        res.status(500).send(err);
+    }
+})
+
 module.exports = router
