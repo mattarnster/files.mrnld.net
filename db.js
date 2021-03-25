@@ -1,4 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
+const { table } = require('console');
 const fs = require('fs')
 
 let _db
@@ -12,6 +13,9 @@ async function initDb() {
                 console.log('[DB] Checking table schemas...')
                 _db.serialize(async function () {
                     _db.all("select name from sqlite_master where type='table'", async function (err, tables) {
+                        for (var table in tables) {
+                            console.log('[DB] Found table: ' + table)
+                        }
                         if (tables.length === 0) {
                             // There are no tables in the database, start migrations
                             let migrations = fs.readFile('./tables.json', 'utf-8', (async (err, data) => {
