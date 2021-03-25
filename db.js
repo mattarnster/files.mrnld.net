@@ -55,7 +55,7 @@ async function initDb() {
                                         await _db.run('CREATE TABLE IF NOT EXISTS migrations(id INT PRIMARY KEY ASC,version INT)')
                                         dbVersion = 0
                                     }
-                                    dbVersion = row.version
+                                    dbVersion = row.version ?? 0
                                     console.log(`[DB] Latest migration version is: ${latestVersion}, compared to ${row.version}`)
                                     while (latestVersion > dbVersion) {
                                         dbVersion++
