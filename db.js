@@ -45,7 +45,7 @@ async function initDb() {
                                 let json = JSON.parse(data)
                                 var latestVersion = json[json.length - 1].version
                                 var dbVersion
-                                await _db.get('SELECT version FROM migrations LIMIT 1', (err, row) => {
+                                await _db.get('SELECT version FROM migrations LIMIT 1', async (err, row) => {
                                     if (!row) {
                                         console.log('[DB] Migrations table doesn\'t exist or there are no records in it')
                                         await _db.run('CREATE TABLE IF NOT EXISTS migrations(id INT PRIMARY KEY ASC,version INT)')
